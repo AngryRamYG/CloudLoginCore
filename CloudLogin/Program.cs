@@ -7,19 +7,49 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
-builder.Services.AddControllersWithViews()
-    .AddMicrosoftIdentityUI();
+//builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+//    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+//builder.Services.AddControllersWithViews()
+//    .AddMicrosoftIdentityUI();
 
-builder.Services.AddAuthorization(options =>
+//builder.Services.AddAuthorization(options =>
+//{
+//    // By default, all incoming requests will be authorized according to the default policy
+//    //options.FallbackPolicy = options.DefaultPolicy;
+//});
+
+builder.Services.AddAuthentication("Cookies").AddCookie(opt =>
 {
-    // By default, all incoming requests will be authorized according to the default policy
-    //options.FallbackPolicy = options.DefaultPolicy;
+    opt.Cookie.Name = "HAHAY";
+    opt.LoginPath = "/auth/signin";
+}
+).AddMicrosoftAccount(opt =>
+{
+    opt.ClientId = builder.Configuration["Microsoft:ClientId"];
+    opt.ClientSecret = builder.Configuration["Microsoft:ClientSecret"];
+    opt.Events.OnCreatingTicket = context =>
+    {
+        string picuri = context.User.GetProperty("picture").ToString();
+        context.Identity.AddClaim(new Claim("picture", picuri));
+        return Task.CompletedTask;
+    };
+})
+.AddGoogle(opt =>
+{
+    opt.ClientId = builder.Configuration["Google:ClientId"];
+    opt.ClientSecret = builder.Configuration["Google:ClientSecret"];
+    opt.Scope.Add("openid");
+    opt.Events.OnCreatingTicket = context =>
+    {
+        string picuri = context.User.GetProperty("picture").ToString();
+        context.Identity.AddClaim(new Claim("picture", picuri));
+        return Task.CompletedTask;
+    };
 });
 
 builder.Services.AddRazorPages();
