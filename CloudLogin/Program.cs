@@ -11,51 +11,24 @@ using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-//builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-//    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
-//builder.Services.AddControllersWithViews()
-//    .AddMicrosoftIdentityUI();
 
-//builder.Services.AddAuthorization(options =>
-//{
-//    // By default, all incoming requests will be authorized according to the default policy
-//    //options.FallbackPolicy = options.DefaultPolicy;
-//});
-
-builder.Services.AddAuthentication("Cookies").AddCookie(opt =>
-{
-    opt.Cookie.Name = "HAHAY";
-    opt.LoginPath = "/auth/signin";
-}
-).AddMicrosoftAccount(opt =>
-{
-    opt.ClientId = builder.Configuration["Microsoft:ClientId"];
-    opt.ClientSecret = builder.Configuration["Microsoft:ClientSecret"];
-    opt.Events.OnCreatingTicket = context =>
-    {
-        string picuri = context.User.GetProperty("picture").ToString();
-        context.Identity.AddClaim(new Claim("picture", picuri));
-        return Task.CompletedTask;
-    };
-})
-.AddGoogle(opt =>
-{
-    opt.ClientId = builder.Configuration["Google:ClientId"];
-    opt.ClientSecret = builder.Configuration["Google:ClientSecret"];
-    opt.Scope.Add("openid");
-    opt.Events.OnCreatingTicket = context =>
-    {
-        string picuri = context.User.GetProperty("picture").ToString();
-        context.Identity.AddClaim(new Claim("picture", picuri));
-        return Task.CompletedTask;
-    };
-});
 
 builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor()
-    .AddMicrosoftIdentityConsentHandler();
+builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
+
+//Implementing microsoft login
+builder.Services.AddAuthentication("Cookies")
+	.AddCookie(option =>
+	{
+		option.Cookie.Name = "ChatboxAuthentication";
+	})
+	.AddMicrosoftAccount(Option =>
+	{
+		Option.SignInScheme = "Cookies";
+		Option.ClientId = builder.Configuration["Microsoft:ClientId"];
+		Option.ClientSecret = builder.Configuration["Microsoft:ClientSecret"];
+	});
 
 var app = builder.Build();
 

@@ -1,10 +1,17 @@
-﻿<AuthorizeView>
+﻿@using System.Security.Claims;
+
+<AuthorizeView>
     <Authorized>
-        Hello, @context.User.Identity?.Name!
-        <a href="MicrosoftIdentity/Account/SignOut">Log out</a>
+        Name: @context.User.FindFirst(ClaimTypes.Name).Value
+        ID: @context.User.FindFirst(ClaimTypes.NameIdentifier).Value
+        <a href="login/logout">Logout</a>
     </Authorized>
     <NotAuthorized>
-        <a href="auth/microsoft-login">Microsoft</a>
-        <a href="auth/google-login">Google</a>
+        <a href="login/signin?RedirectUri=@RedirectUri&Identity=Microsoft">Microsoft</a>
+        <a href="login/signin?RedirectUri=@RedirectUri&Identity=Google">Google(NOTWORKING)</a>
     </NotAuthorized>
 </AuthorizeView>
+
+@code{
+    string RedirectUri = "/";
+}
